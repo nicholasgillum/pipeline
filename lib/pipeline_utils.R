@@ -7,32 +7,69 @@ library('outliers')
 getConditions <- function(Slides) {
 	candidates = Slides$targets$Name
 	dye_mask = grepl("_DF", candidates,ignore.case=TRUE)
-	return(matrix(candidates[!dye_mask],ncol=1))
+#	fwd_mask = grepl("forward", Slides$targets$SlideType, ignore.case=TRUE)
+	
+	# NDF/fwd and DF/rev
+	good_mask <- !dye_mask#((!dye_mask) & fwd_mask) | (dye_mask & (!fwd_mask))
+	
+	return(matrix(candidates[good_mask],ncol=1))
+}
+getForwardMask<-function(Slides,candidates) {
+	return(grepl("forward", Slides$targets$SlideType))
+}
+
+getType<-function(config) {
+	if(config$algorithms$median) {
+		return("agilent.median");
+	} else {
+		return("agilent")
+	}
+}
+
+getUniqueGeneNames<-function(config) {
+	if(config$algorithms$median) {
+		return(matrix(unique(Slides.norm$genes$ProbeName),ncol=1))
+	} else {
+		return(matrix(unique(Slides.norm$genes$GeneName),ncol=1))
+	}
 }
 
 getDyeSwaps <- function(Slides) {
 	candidates = Slides$targets$Name
 	dye_mask = grepl("_DF", candidates,ignore.case=TRUE)
-	return(matrix(candidates[dye_mask],ncol=1))
+	
+	fwd_mask = grepl("forward", Slides$targets$SlideType, ignore.case=TRUE)
+	
+	# NDF/fwd and DF/rev
+	good_mask <- dye_mask#((!dye_mask) & fwd_mask) | (dye_mask & (!fwd_mask))
+	
+	return(matrix(candidates[!good_mask],ncol=1))
 }
 
-divide <-function(name, Slides,config, conditions, dyeswap) {
+divide <-function(name, Slides,config, conditions, dyeswap, fwdmask) {
 	#Find the spots with the given gene name
-	gene_mask = Slides$genes$GeneName == name;
-	tmp = Slides[gene_mask,]
+	if(config$algorithms$median) {
+		gene_mask <- Slides$genes$ProbeName == name;
+	} else {
+		gene_mask <- Slides$genes$GeneName == name;
+	}
+	
+	tmp<-Slides[gene_mask,]
+	
 	
 	#Get intensities
-	output <- apply(conditions, 1, collector, 
-				dye_swaps, tmp, config$setup$exp_color, name)
+	output <- apply(conditions, 1, collector, conditions,
+				dye_swaps, tmp, name,fwdmask)
 	
 	return(output)
 }
 
-collector<-function(condition, dye_swaps, fSlides, exp_dye,gname) {
+collector<-function(condition, conditions, dye_swaps, fSlides,gname,fwdmask) {
+	fwd <- sum((condition == conditions) & fwdmask) >0
 	
-	expr <- fSlides$M[,condition]
-	df_mask = grepl(paste("^",condition,sep="false"), dye_swaps, ignore.case=TRUE)
 	
+	expr <- fSlides$M[, condition]
+	df_mask = grepl(paste("^",condition,"_DF",sep="false"),dye_swaps, ignore.case=TRUE)
 	if(sum(df_mask) == 1) {
 		name <- dye_swaps[df_mask]
 		expr_df <- fSlides$M[,name]
@@ -42,12 +79,10 @@ collector<-function(condition, dye_swaps, fSlides, exp_dye,gname) {
 		stop(paste("Error! ambiguous condition name: ", condition))
 	}
 	
-	if(exp_dye == "R"){
-		output = unlist(c(expr, -1*expr_df))
-	} else if(exp_dye == "G") {
-		output = unlist(c(-1*expr, expr_df))
+	if(fwd) {
+		output <- unlist(c(expr, -1*expr_df))
 	} else {
-		stop(paste("Unrecognized exp dye color (not R or G): ", exp_dye))
+		output <- unlist(c(-1*expr, expr_df))
 	}
 	
 	return(collapse(output, paste(condition,"-",gname)));

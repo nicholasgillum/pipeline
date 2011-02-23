@@ -1,20 +1,19 @@
 algorithms:
   bgCorrection: normexp
   withinArray:  robust
-  betweenArray: scale
+  betweenArray: vsn
+  median: yes
 
 files:
-  metadata: /home/nag9/Desktop/microarray/metadata_2606.txt
-  rawDir: /home/nag9/Desktop/microarray
+  library: /home/nag9/workspace/pipeline/lib
+  metadata: /home/nag9/Desktop/microarray/2603/metadata_b8_2603.txt
+  rawDir: /home/nag9/Desktop/microarray/2603
   tmpDir:  /home/nag9/workspace/pipeline/tmp
-  output: /home/nag9/Desktop/processed/normexp_robust_scale_2606.tsv
+  output: /home/nag9/Desktop/processed/2603/normexp_vsn_b8_2603.tsv
 
 quiet:
   backgroundCorrection: yes
   withinArrayNormalization:  yes
-
-setup:
-  exp_color: R
 
 dixon:
   cutoff: 0.0001

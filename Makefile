@@ -2,7 +2,7 @@ all: sweave
 	cd report; make $(MKFLGS)
 
 sweave: force_look
-	mv preprocessing.tex tmp/preprocessing.tex;
+	mv preprocessing.tex report/preprocessing.tex;
 	
 force_look:
 	true
