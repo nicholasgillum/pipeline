@@ -1,0 +1,7 @@
+expr<-getMatrix()
+time=c(-40,-20,0,10,20,40,60,80)
+data<-data.frame(time=time, expr=t(expr))
+colnames(data)<-gsub("expr..","",colnames(data))
+colnames(data)<-gsub("\\.","",colnames(data))
+rownames(data)<-gsub("\"","",rownames(data))
+write.table(data,"exp_data.txt")
