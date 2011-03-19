@@ -1,3 +1,7 @@
+glr_mdl <-function(p,x) {
+	return(p[1]/(1+exp(p[2]+p[3]*x)));
+}
+
 exp_mdl<-function(p,x) {
   return(p[1]*(1-exp(p[2]*(x-p[3])))*(x>=p[3]))
 }

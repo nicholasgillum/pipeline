@@ -4,13 +4,14 @@ library(RColorBrewer)
 library('yaml')
 library('outliers')
 
+getConditionNames <- function(Slides.norm) {
+	return(matrix(Slides.norm$targets$Name))
+}
+
 getConditions <- function(Slides) {
 	candidates = Slides$targets$Name
 	dye_mask = grepl("_DF", candidates,ignore.case=TRUE)
-#	fwd_mask = grepl("forward", Slides$targets$SlideType, ignore.case=TRUE)
-	
-	# NDF/fwd and DF/rev
-	good_mask <- !dye_mask#((!dye_mask) & fwd_mask) | (dye_mask & (!fwd_mask))
+	good_mask <- !dye_mask
 	
 	return(matrix(candidates[good_mask],ncol=1))
 }
@@ -39,14 +40,13 @@ getDyeSwaps <- function(Slides) {
 	dye_mask = grepl("_DF", candidates,ignore.case=TRUE)
 	
 	fwd_mask = grepl("forward", Slides$targets$SlideType, ignore.case=TRUE)
+
+	good_mask <- dye_mask
 	
-	# NDF/fwd and DF/rev
-	good_mask <- dye_mask#((!dye_mask) & fwd_mask) | (dye_mask & (!fwd_mask))
-	
-	return(matrix(candidates[!good_mask],ncol=1))
+	return(matrix(candidates[good_mask],ncol=1))
 }
 
-divide <-function(name, Slides,config, conditions, dyeswap, fwdmask) {
+divide <-function(name, Slides,config, candidates, conditions, dyeswap, fwdmask) {
 	#Find the spots with the given gene name
 	if(config$algorithms$median) {
 		gene_mask <- Slides$genes$ProbeName == name;
@@ -58,21 +58,21 @@ divide <-function(name, Slides,config, conditions, dyeswap, fwdmask) {
 	
 	
 	#Get intensities
-	output <- apply(conditions, 1, collector, conditions,
+	output <- apply(conditions, 1, collector, candidates,
 				dye_swaps, tmp, name,fwdmask)
 	
 	return(output)
 }
 
-collector<-function(condition, conditions, dye_swaps, fSlides,gname,fwdmask) {
-	fwd <- sum((condition == conditions) & fwdmask) >0
+collector<-function(condition, candidates, dye_swaps, fSlides,gname,fwdmask) {
+	fwd <- sum((condition == candidates) & fwdmask) >0
+	gname_mask <- (fSlides$genes$GeneName == gname)
 	
-	
-	expr <- fSlides$M[, condition]
-	df_mask = grepl(paste("^",condition,"_DF",sep="false"),dye_swaps, ignore.case=TRUE)
+	expr <- fSlides$M[gname_mask,condition]
+	df_mask = grepl(paste("^",condition,"_DF",sep=""),dye_swaps, ignore.case=TRUE)
 	if(sum(df_mask) == 1) {
 		name <- dye_swaps[df_mask]
-		expr_df <- fSlides$M[,name]
+		expr_df <- fSlides$M[gname_mask,name]
 	} else if(sum(df_mask) == 0) {
 		expr_df <- c()
 	} else {

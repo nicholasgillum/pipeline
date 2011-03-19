@@ -196,6 +196,7 @@ cat(length(gene_names), " genes were found. ")
 @
 All dye swapped columns must be labelled in the metadata file as XXX and XXX\_DF
 <<bind_data_structures>>=
+candidates = getConditionNames(Slides.norm)
 conditions = getConditions(Slides.norm)
 dye_swaps  = getDyeSwaps(Slides.norm)
 fwd_mask   <-getForwardMask(Slides.norm, conditions)
@@ -207,7 +208,7 @@ colnames(output_data)<-conditions
 rownames(output_data)<-gene_names
 
 for(i in 1:length(gene_names)) {
-	output_data[i,]<-divide(gene_names[i], Slides.norm, config, conditions, dye_swaps,fwd_mask)
+	output_data[i,]<-divide(gene_names[i], Slides.norm, config, candidates, conditions, dye_swaps,fwd_mask)
 }
 write.table(output_data,file=config$files$output,sep="\t",col.names=NA)
 end_time = Sys.time()

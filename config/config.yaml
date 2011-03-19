@@ -1,22 +1,24 @@
 algorithms:
   bgCorrection: normexp
-  withinArray:  robust
-  betweenArray: vsn
-  median: yes
+  withinArray:  printtiploess
+  betweenArray: quantile
+  median: no
 
 files:
   library: /home/nag9/workspace/pipeline/lib
-  metadata: /home/nag9/Desktop/microarray/2603/metadata_b8_2603.txt
-  rawDir: /home/nag9/Desktop/microarray/2603
+  metadata: /home/nag9/Desktop/microarray/2606/metadata_2606.txt
+  rawDir: /home/nag9/Desktop/microarray/2606
   tmpDir:  /home/nag9/workspace/pipeline/tmp
-  output: /home/nag9/Desktop/processed/2603/normexp_vsn_b8_2603.tsv
+  output: /home/nag9/Desktop/processed/2606/normexp_printtip_quantile_no_outliers.tsv
 
 quiet:
-  backgroundCorrection: yes
-  withinArrayNormalization:  yes
+  backgroundCorrection: no
+  withinArrayNormalization:  no
 
 dixon:
-  cutoff: 0.0001
+  cutoff: 0
+  
+#cutoff: 0.0001
 
 ####################################
 ####### End User Editing ###########
